@@ -146,7 +146,6 @@ void *user_routine(void *args)
         cli_addr.sin_family = AF_INET;
         cli_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         cli_addr.sin_port = htons(info->cliport);
-        cout << info->cliport << endl;
         int err = 0;
 
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &x, sizeof(x)) < 0)
