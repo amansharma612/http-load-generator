@@ -12,9 +12,9 @@
 #include <pthread.h>
 
 // Configuration
-#define HOST "localhost"
-#define URL "/index.html"
-#define PORT 8080
+#define HOST "www.google.com"
+#define URL "/"
+#define PORT 443
 #define SANITY_CHECK 0
 #define OUTPUT 0
 #define FAULT_EXIT 0
@@ -51,6 +51,9 @@ struct user_info
     // user metrics
     int total_count;
     float total_rtt;
+
+    //client port no
+    int cliport;
 };
 
 string send_request(string url);

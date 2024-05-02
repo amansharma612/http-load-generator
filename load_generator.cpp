@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
         info[i].user_id = i;
         info[i].hostname = HOST;
         info[i].portno = PORT;
+        info[i].cliport = 5000 + i;
         info[i].think_time = think_time;
         info[i].total_rtt = 0;
         // Creating threads
@@ -103,7 +104,10 @@ void *user_routine(void *args)
     struct timeval start, end;
 
     struct hostent *server;
-    struct sockaddr_in serv_addr;
+    struct sockaddr_in serv_addr, cli_addr;
+
+    
+
 
     // Get the server address
     portno = info->portno;
@@ -120,16 +124,47 @@ void *user_routine(void *args)
     bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
 
+    // clear the address struct for the client socket
+    bzero((char *)&cli_addr, sizeof(cli_addr));
+
+    
+
     while (1)
     {
         gettimeofday(&start, NULL);
         // Create a socket
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        int x = 1;
+        
         if (sockfd < 0)
         {
             cerr << "Error opening socket" << endl;
             exit(EXIT_FAILURE);
         }
+
+
+        cli_addr.sin_family = AF_INET;
+        cli_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        cli_addr.sin_port = htons(info->cliport);
+        cout << info->cliport << endl;
+        int err = 0;
+
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &x, sizeof(x)) < 0)
+            cerr << "setsockopt(SO_REUSEADDR) failed" << endl;
+        
+
+        struct linger l_opt;
+        l_opt.l_onoff = 1;
+        l_opt.l_linger = 1;
+        setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &l_opt, sizeof l_opt);
+        
+        err = bind(sockfd, (struct sockaddr *) &cli_addr, sizeof(cli_addr));
+        if (err < 0)
+        {
+            cerr << err << endl;
+            exit(EXIT_FAILURE);
+        }
+
 
         // Connect to the server
         if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
@@ -137,7 +172,9 @@ void *user_routine(void *args)
             cerr << "Error connecting" << endl;
             exit(EXIT_FAILURE);
         }
+        
 
+        
         // cout << "Please enter the url: ";
         // bzero(buffer, 256);
         // cin >> buffer;
@@ -193,6 +230,7 @@ void *user_routine(void *args)
         // Updating user metrics
         info->total_rtt += elapsed_time;
         info->total_count++;
+
 
         sleep(info->think_time);
     }
