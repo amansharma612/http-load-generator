@@ -1,6 +1,6 @@
 # http-load-generator
 
-A simple closed loop load generator for HTTP requests to test HTTP servers.
+A simple closed loop load generator for HTTP requests to test servers.
 
 > The load generator only supports `HTTP/1.0` and `GET` requests.
 
